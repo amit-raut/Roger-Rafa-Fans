@@ -4,12 +4,14 @@ from datetime import datetime, timedelta
 import argparse
 import json
 import requests
+import time
 
 parser = argparse.ArgumentParser(prog='Roger Rafa', usage='%(prog)s [options]')
 parser.add_argument('-c', '--cmd', default='check',
         help='check - Check availability tomorrow or book - Book available tomorrow')
 parser.add_argument('-n', '--no', default='2',
         help='Number of courts to book')
+parser.add_argument('-t', '--time', help='Time slot to book courts')
 
 args = parser.parse_args()
 
@@ -130,7 +132,7 @@ def book(time_slot, selected_court):
         "user_agent": "Mozilla/5.0 (X11; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0"
     }
 
-# Sending request to reserve court for 6PM
+    # Sending request to reserve court for 6PM
     print("[+] Booking {0} for tommorrow at {1}PM".format(selected_court, int(time_slot) - 12))
     print()
     response = requests.post(URL, headers=headers, data=data)
@@ -154,13 +156,17 @@ if __name__=="__main__":
     print("Reservations for {0}".format((datetime.now() + timedelta(1)).strftime('%A, %b %d %Y')))
     print()
     # Loop for checking from 6PM to 9PM
-    for i in range(18,22):
-        if args.cmd == 'check':
+    if args.cmd == 'check':
+        for i in range(18,22):
             check(i)
-        elif args.cmd == 'book':
-            # Loop to book n number of courts
-            for j in range(int(args.no)):
-                court_selected = check(i)
-                if court_selected:
-                    book(i, court_selected)
-                    print()
+    elif args.cmd == 'book':
+        # Sleep for 3 second after stike of an hour
+        time.sleep(3)
+        # Loop to book n number of courts
+        for j in range(int(args.no)):
+            court_selected = check(args.time)
+            if court_selected:
+                book(args.time, court_selected)
+                print()
+
+    print("="*80)
