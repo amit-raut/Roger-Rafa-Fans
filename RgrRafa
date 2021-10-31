@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+
+from datetime import datetime, timedelta
+import argparse
+import json
+import requests
+
+parser = argparse.ArgumentParser(prog='Roger Rafa', usage='%(prog)s [options]')
+parser.add_argument('-c', '--cmd', default='check',
+        help='check - Check availability tomorrow or book - Book available tomorrow')
+parser.add_argument('-n', '--no', default='2',
+        help='Number of courts to book')
+
+args = parser.parse_args()
+
+
+
+URL = "https://www.planyo.com/Plugins/PlanyoFiles/non-planyo-ulap.php"
+tomorrow = (datetime.now() + timedelta(1)).strftime('%b %d, %Y')
+
+headers = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0",
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    "X-Requested-With": "XMLHttpRequest",
+    "Origin": "https://www.planyo.com",
+    "DNT": "1",
+    "Connection": "keep-alive",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "no-cors",
+    "Sec-Fetch-Site": "same-origin",
+    "TE": "trailers",
+    "Pragma": "no-cache",
+    "Cache-Control": "no-cache"
+}
+
+def banner():
+    """
+    Prints banner
+    """
+    print("""
+      _   _   __  _  _     _        _
+     |_) / \\ /__ |_ |_)   |_)  /\\  |_ /\\
+     | \\ \\_/ \\_| |_ | \\   | \\ /--\\ | /--\\
+    """)
+    print()
+
+
+def check(time_slot):
+    """
+    Checks availability of courts for given time slot
+    """
+    data = {
+        "ulap_url": "https://www.planyo.com/rest/planyo-reservations.php",
+        "mode": "fetch_units",
+        "ism": "0",
+        "language": "EN",
+        "resource_id": "118770",
+        "quantity": "1",
+        "granulation": "60",
+        "is_night": "0",
+        "one_date": tomorrow,
+        "start_time": str(time_slot),
+        "end_time": "",
+        "zip": "",
+        "first": "",
+        "last": "",
+        "country": "",
+        "mobile_country_param": "",
+        "phone_country_param": "",
+        "address": "",
+        "city": "",
+        "state": "",
+        "feedback_url": "https://www.planyo.com/booking.php?calendar=36698",
+        "email": "",
+        "assignment1": "Unassigned"
+    }
+
+    # Court availability
+    response = requests.post(URL, headers=headers, data=data)
+    if response.status_code == 200:
+        available_courts = response.text.replace("[", "").replace("]", "").replace('"', '').split(",")
+        print("[+] Available courts at {0}PM: {1}".format(int(time_slot) - 12,
+            str(available_courts).replace("'Court ", "").replace("'","")))
+
+    # Make court selection from available court
+    if len(available_courts):
+        if 'Court 6' in available_courts:
+            selected_court = 'Court 6'
+        elif 'Court 5' in available_courts:
+            selected_court = 'Court 5'
+        elif 'Court 4' in available_courts:
+            selected_court = 'Court 4'
+        else:
+            selected_court = available_courts[0]
+    else:
+        selected_court = None
+    return selected_court
+
+
+def book(time_slot, selected_court):
+    """
+    Books selected court for given time slot
+    """
+    data = {
+        "mode": "make_reservation",
+        "site_id": "36698",
+        "resource_id": "118770",
+        "one_date": tomorrow,
+        "start_time": str(time_slot),
+        "time_mode": "part_day",
+        "rental_time_fixed_value": "1",
+        "quantity": "1",
+        "assignment1": selected_court,
+        "first": "Rgr",
+        "last": "Rafa",
+        "email": "rgrrafafans@outlook.com",
+        "verify_data": "true",
+        "granulation": "60",
+        "is_night": "0",
+        "first_working_hour": "6",
+        "last_working_hour": "22",
+        "submitted": "true",
+        "feedback_url": "https://www.planyo.com/booking.php?calendar=36698",
+        "ulap_url": "https://www.planyo.com/rest/planyo-reservations.php",
+        "language": "en",
+        "plugin_mode": "10",
+        "user_agent": "Mozilla/5.0 (X11; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0"
+    }
+
+# Sending request to reserve court for 6PM
+    print("[+] Booking {0} for tommorrow at {1}PM".format(selected_court, int(time_slot) - 12))
+    print()
+    response = requests.post(URL, headers=headers, data=data)
+    if response.status_code == 200:
+        if "Your reservation ID is" in response.text:
+            print("[+] {0} successfully reserved for {1}PM".format(selected_court,
+                int(time_slot) - 12))
+            print()
+            print("#"*80)
+            print(response.text)
+            print("#"*80)
+        else:
+            print("[!] Something went wrong :(")
+            print("#"*80)
+            print(json.dumps(response.json(), indent=4))
+            print("#"*80)
+
+
+if __name__=="__main__":
+    banner()
+    print("Reservations for {0}".format((datetime.now() + timedelta(1)).strftime('%A, %b %d %Y')))
+    print()
+    # Loop for checking from 6PM to 9PM
+    for i in range(18,22):
+        if args.cmd == 'check':
+            check(i)
+        elif args.cmd == 'book':
+            # Loop to book n number of courts
+            for j in range(int(args.no)):
+                court_selected = check(i)
+                if court_selected:
+                    book(i, court_selected)
+                    print()
