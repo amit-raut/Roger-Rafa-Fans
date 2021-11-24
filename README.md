@@ -1,5 +1,7 @@
 # Roger Rafa Fans Court Booking
 
+Easily books tennis courts. 
+
 ## Usage
 
 ```
@@ -10,6 +12,8 @@ optional arguments:
   -c CMD, --cmd CMD     check - Check availability tomorrow or book - Book available tomorrow
   -n NO, --no NO        Number of courts to book
   -t TIME, --time TIME  Time slot to book courts
+  -e EMAIL, --email EMAIL
+                        Email address to get reservation confirmation
 ```
 
 ## Example
@@ -62,5 +66,18 @@ Reservations for Monday, Nov 01 2021
 ================================================================================
 
 ```
+
+## Automatically run script as crontab
+
+For automatically reserving 2 courts for 6PM, 7PM, 8PM following crontab file can be used. Simply run `crontab -e` and add followig lines after changing the absolute path to script on your system.
+
+```
+0 18 * * * <Absolute Path to Repo>/Roger-Rafa-Fans/RgrRafa -c book -t 18 >> <Absolute Path to Repo>/Roger-Rafa-Fans/output.log
+0 19 * * * <Absolute Path to Repo>/Roger-Rafa-Fans/RgrRafa -c book -t 19 >> <Absolute Path to Repo>/Roger-Rafa-Fans/output.log
+0 20 * * * <Absolute Path to Repo>/Roger-Rafa-Fans/RgrRafa -c book -t 20 >> <Absolute Path to Repo>/Roger-Rafa-Fans/output.log
+```
+
+
+
 
 Enjoy! 😉

@@ -12,6 +12,8 @@ parser.add_argument('-c', '--cmd', default='check',
 parser.add_argument('-n', '--no', default='2',
         help='Number of courts to book')
 parser.add_argument('-t', '--time', help='Time slot to book courts')
+parser.add_argument('-e', '--email', default='rgrrafafans@outlook.com',
+        help='Email address to get reservation confirmation')
 
 args = parser.parse_args()
 
@@ -118,7 +120,7 @@ def book(time_slot, selected_court):
         "assignment1": selected_court,
         "first": "Rgr",
         "last": "Rafa",
-        "email": "rgrrafafans@outlook.com",
+        "email": args.email,
         "verify_data": "true",
         "granulation": "60",
         "is_night": "0",
