@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import argparse
 import json
 import requests
+import random
 import time
 
 parser = argparse.ArgumentParser(prog='Roger Rafa', usage='%(prog)s [options]')
@@ -12,7 +13,7 @@ parser.add_argument('-c', '--cmd', default='check',
 parser.add_argument('-n', '--no', default='2',
         help='Number of courts to book')
 parser.add_argument('-t', '--time', help='Time slot to book courts')
-parser.add_argument('-e', '--email', default='rgrrafafans@outlook.com',
+parser.add_argument('-e', '--email', default='t3nnis9@outlook.com',
         help='Email address to get reservation confirmation')
 
 args = parser.parse_args()
@@ -21,6 +22,9 @@ args = parser.parse_args()
 
 URL = "https://www.planyo.com/Plugins/PlanyoFiles/non-planyo-ulap.php"
 tomorrow = (datetime.now() + timedelta(1)).strftime('%b %d, %Y')
+
+# To check for today's booking uncomment following
+# tomorrow = datetime.now().strftime('%b %d, %Y')
 
 headers = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0",
@@ -86,8 +90,8 @@ def check(time_slot):
     response = requests.post(URL, headers=headers, data=data)
     if response.status_code == 200:
         available_courts = response.text.replace("[", "").replace("]", "").replace('"', '').split(",")
-        print("[+] Available courts at {0}PM: {1}".format(int(time_slot) - 12,
-            str(available_courts).replace("'Court ", "").replace("'","")))
+        print("[+] Available courts at {0} PM: {1}".format(int(time_slot) - 12,
+            str(available_courts).replace("'Court ", "").replace("'","") if len(available_courts) != 1 else "None"))
 
     # Make court selection from available court
     if len(available_courts):
@@ -118,8 +122,8 @@ def book(time_slot, selected_court):
         "rental_time_fixed_value": "1",
         "quantity": "1",
         "assignment1": selected_court,
-        "first": "Rgr",
-        "last": "Rafa",
+        "first": "Alex",
+        "last": "P",
         "email": args.email,
         "verify_data": "true",
         "granulation": "60",
@@ -154,8 +158,9 @@ def book(time_slot, selected_court):
 
 
 if __name__=="__main__":
+    time.sleep(random.randint(12,46))
     banner()
-    print("Reservations for {0}".format((datetime.now() + timedelta(1)).strftime('%A, %b %d %Y')))
+    print("Reservations for {0}".format(tomorrow))
     print()
     # Loop for checking from 6PM to 9PM
     if args.cmd == 'check':
